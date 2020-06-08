@@ -18,13 +18,16 @@ import java.util.Map;
 public class AssetValidator {
 
 	private static final Gson GSON = new GsonBuilder().create();
+	private static String index;
 
-	public static void validate(File assetsDir) throws Exception {
+	public static String validate(File assetsDir, String runIndex) throws Exception {
 		final String mcVersion = getMinecraftVersion();
 		JsonObject assets = getAssets(mcVersion, assetsDir);
 		if (assets != null) {
 			downloadAssets(assets, assetsDir);
+			return index != null ? index : runIndex;
 		}
+		return runIndex;
 	}
 
 	private static void downloadAssets(JsonObject jsonObject, File assetsDir) throws IOException {
@@ -49,7 +52,8 @@ public class AssetValidator {
 		JsonObject versionMeta = getVersionMeta(mcVersion);
 		if (versionMeta != null && versionMeta.has("assetIndex")) {
 			String indexUrl = versionMeta.get("assetIndex").getAsJsonObject().get("url").getAsString();
-			File indexFile = new File(assetsDir, "indexes/" + getIndexFileName(versionMeta) + ".json");
+			index = getIndexFileName(versionMeta);
+			File indexFile = new File(assetsDir, "indexes/" + index + ".json");
 			if (!indexFile.exists()) {
 				System.out.println("Downloading: " + indexFile.getName());
 				FileUtils.copyURLToFile(new URL(indexUrl), indexFile);
